@@ -56,13 +56,14 @@ Make sure the following programs are installed:
 p7zip imagemagick pdftk poppler-utils
 ```
 
-the following programs are probably already installed:
+The following programs are also required, but should already be installed
+unless you are using a very unusual distribution:
 
 ```
 ghostscript sed bc
 ```
 
-As an example, for Debian-based distros, these can be installed with 
+As an example, for Debian-based distros, all required packages can be installed with 
 
 ```
 apt install poppler-utils pdftk-java ghostscript imagemagick p7zip sed bc
@@ -77,8 +78,9 @@ Download the file `ilias-to-booklet.sh` above. Alternatively, clone this repo wi
 git clone github:fstoehr/Ilias-to-Booklet-Converter
 ```
 
-Ideally, put the script somewhere in your path. Give yourself permission
-to execute it using
+Ideally, put the script somewhere in your path. Depending on how you
+downloaded it, you might need to give yourself permission
+to execute the script using
 
 ```
 chmod u+x ilias-to-booklet.sh
@@ -169,7 +171,15 @@ brew install coreutils gnu-sed bc
 
 #### 3. Download the script
 
-Download the file ilias-to-booklet.sh above. You might want to add it to your path. Then open a terminal in the directory the
+Download the file ilias-to-booklet.sh above. You might want to add it to
+your path. You might need to give yourself permission to execute it using
+
+```
+chmod u+x ilias-to-booklet.sh
+```
+
+
+Then open a terminal in the directory the
 Zip-files you downloaded from ILIAS are located and run it:
 
 ```
