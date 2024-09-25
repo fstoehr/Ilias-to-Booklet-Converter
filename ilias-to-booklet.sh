@@ -7,7 +7,6 @@ echo -e "Die Zip-Dateien werden extrahiert, die Dateien umsortiert, und für jed
 echo -e "Dabei wird aus jeder eingereichten Pdf-Datei nur die erste Seite berücksichtigt."
 echo -e "Die Reihenfolge der Seiten richtet sich nach den Namen\nder Übungen in ILIAS (alphabetisch sortiert)."
 echo ""
-# TODO: Möglichkeit einbauen, umzusortieren. (Vielleicht kurze Pause vor: Nicht-konvertierbaren Bildern
 
 echo -e "Außerdem werden Bilddateien, die auf .jpg, .jpeg, .png  oder .sec enden,\n in Pdfs konvertiert."
 echo -e "Die Seiten werden auf A5 skaliert und hochkant rotiert."
