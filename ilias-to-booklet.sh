@@ -9,9 +9,9 @@ echo -e "Die Reihenfolge der Seiten richtet sich nach den Namen\nder Übungen in
 echo ""
 # TODO: Möglichkeit einbauen, umzusortieren. (Vielleicht kurze Pause vor: Nicht-konvertierbaren Bildern
 
-echo "Außerdem werden Bilddateien, die auf .jpg, .jpeg, .png  oder .sec enden,\n in Pdfs konvertiert."
-echo "Die Seiten werden auf A5 skaliert und hochkant rotiert."
-echo "Bitte fahren Sie nur fort, wenn das aktuelle Verzeichnis\ndie aus ILIAS exportierten Zip-Dateien enthält."
+echo -e "Außerdem werden Bilddateien, die auf .jpg, .jpeg, .png  oder .sec enden,\n in Pdfs konvertiert."
+echo -e "Die Seiten werden auf A5 skaliert und hochkant rotiert."
+echo -e "Bitte fahren Sie nur fort, wenn das aktuelle Verzeichnis\ndie aus ILIAS exportierten Zip-Dateien enthält."
 echo ""
 
 # echo "Alternativ kann das Verzeichnis, in dem sich die .zip-Dateien befinden, auch als KommandozeilenArgument angegeben werden."
