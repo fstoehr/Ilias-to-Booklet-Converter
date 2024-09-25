@@ -13,11 +13,9 @@ their notes in brochure form when they take their exam.
 More information and an English translation of the script will follow
 later.
 
-## Installation Instructions
+## Installing on Linux
 
-### Linux
-
-#### Using the Nix Flake (on NixOS or any other Distro)
+### Using the Nix Flake (on NixOS or any other Distro)
 
 This assumes nix is already installed. You can simply execute the script
 using
@@ -38,7 +36,7 @@ To run the script if it's installed, just run
 ilias-to-booklet
 ```
 
-##### If flakes are disabled
+#### If flakes are disabled
 
 If you don't have flakes enabled, you may need to instead use the
 following commands:
@@ -48,9 +46,9 @@ nix --extra-experimental-feature "flakes nix-command" github:fstoehr/Ilias-to-Bo
 nix --extra-experimental-feature "flakes nix-command" profile install github:fstoehr/Ilias-to-Booklet-Converter
 ```
 
-#### Using your distribution's package manager
+### Using your distribution's package manager
 
-##### 1. Install dependencies
+#### 1. Install dependencies
 
 Make sure the following programs are installed:
 
@@ -71,7 +69,7 @@ apt install poppler-utils pdftk-java ghostscript imagemagick p7zip sed bc
 ```
 
 
-#### 2. Install Script
+### 2. Install Script
 
 Download the file `ilias-to-booklet.sh` above. Alternatively, clone this repo with
 
@@ -103,20 +101,20 @@ instance
 
 
 
-### MacOS
+## MacOS
 
-#### with Nix (recommended)
+### with Nix (recommended)
 
-##### 1. Install nix package manager
+#### 1. Install nix package manager
 
 If you haven't already, install the nix package manager. The simplest way
 to do that on MacOS appears to be the graphical installer by [Determinate
 Systems](https://determinate.systems/posts/graphical-nix-installer/).
 
 
-##### 2. Run or install script
+#### 2. Run or install script
 
-you can run the script directly from a terminal if you enter the directory
+You can run the script directly from a terminal if you enter the directory
 with the Zip-archives downloaded from Ilias and then run:
 
 ```
@@ -147,15 +145,17 @@ nix --extra-experimental-feature "flakes nix-command" profile install github:fst
 )
 
 
-#### with Homebrew
+### with Homebrew (not tested)
 
-##### 1. Install Homebrew
+#### 1. Install Homebrew
 
 If you haven't aleady, install [homebrew](https://brew.sh).
 
-##### 2. Install Dependencies
+#### 2. Install Dependencies
 
+```
 brew install p7zip findutils pdftk-java ghostscript poppler
+```
 
 (
 Everything else the script needs should already be installed in MacOS. If for some reason
@@ -167,7 +167,7 @@ brew install coreutils gnu-sed bc
 ```
 )
 
-##### 3. Download the script
+#### 3. Download the script
 
 Download the file ilias-to-booklet.sh above. You might want to add it to your path. Then open a terminal in the directory the
 Zip-files you downloaded from ILIAS are located and run it:
