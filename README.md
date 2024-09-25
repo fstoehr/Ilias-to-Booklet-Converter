@@ -17,20 +17,20 @@ later.
 
 ### Using the Nix Flake (on NixOS or any other Distro)
 
-This assumes nix is already installed. You can simply execute the script
-using
+This assumes nix is already installed. To execute the script only once
+without permanently installing it, you can run
 
 ```
 nix run github:fstoehr/Ilias-to-Booklet-Converter
 ```
 
-To install it so you always have it available, you can run
+To install it, run
 
 ```
 nix profile install github:fstoehr/Ilias-to-Booklet-Converter
 ```
 
-To run the script if it's installed, just run
+If the script is installed, you can run it with
 
 ```
 ilias-to-booklet
@@ -38,8 +38,8 @@ ilias-to-booklet
 
 #### If flakes are disabled
 
-If you don't have flakes enabled, you may need to instead use the
-following commands:
+If you don't have flakes enabled, you may need to use the
+following commands instead:
 
 ```
 nix --extra-experimental-feature "flakes nix-command" github:fstoehr/Ilias-to-Booklet-Converter
