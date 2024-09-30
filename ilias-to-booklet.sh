@@ -1,5 +1,8 @@
 #!/bin/env bash
 
+# Only use the first page of each assignment. Can be changed by setting NumberOfPagesPerAssignment variable (in bash)
+if ! ((NumberOfPagesPerAssignment>0)); then NumberOfPagesPerAssignment=1; fi
+
 # TODO: Funktionsbeschreibung des Skripts; Copyright
 echo -e "Dieses Skript erstellt aus Übungen, die über das ILIAS-LMS abgegeben wurden,\nBooklets, wie sie etwa für Klausuren eingesetzt werden können."
 echo -e "Dazu muss das Skript in einem Verzeichnis ausgeführt werden, dass\nvon ILIAS heruntergeladene .Zip-Dateien mit einzelnen Übungen enthält."
@@ -83,7 +86,7 @@ if command -v magick > /dev/null 2>&1; then
 	echo "ImageMagick 7+ found, using the \"magick\" command."
 	MAGICKCOMMAND="magick"
 else
-	if command -v magick > /dev/null 2>&1; then
+	if command -v convert > /dev/null 2>&1; then
 		echo "ImageMagick 6- found, using the \"convert\" command."
 		MAGICKCOMMAND="convert"
 	else
@@ -105,7 +108,8 @@ echo -e "\n \n \n \n"
 echo "Sortiere Dateien nach Nutzern, Ergebnisse dann im Ordner \"Sorted\":"
 echo
 export n=1;
-for f in *; do pushd "$f/Abgaben/" > /dev/null; for i in *; do mkdir -p "../../../Sorted/$i"; cp -i "$i"/*.pdf "../../../Sorted/$i/"`printf '%02d' $n`.pdf; done; popd > /dev/null; (( n += 1 )); echo $n; done
+for f in *; do pushd "$f/Abgaben/" > /dev/null; for i in *; do mkdir -p "../../../Sorted/$i"; cp -i "$i"/*.pdf "../../../Sorted/$i/"`printf '%02d' $n`.pdf; done; popd > /dev/null; (( n += 1 )); #echo $n; 
+done
 echo -e "\n \n"
 echo -e "=============================================================================\n"
 echo "Extrahiere von jedem Dokument nur die erste Seite, und rotiere sie wenn nötig:"
@@ -125,7 +129,11 @@ for f in *; do mkdir -p ../IndividualRotated/"$f"; pushd "$f" > /dev/null;
 		# to compare height and width, we need to use bc rather than bash, because
 		# bash can only handle integers...
 		HeightGreaterEqWidth=$((`echo "$PdfHeight >= $PdfWidth"| bc`))
-		if [ $HeightGreaterEqWidth -eq 1 ]; then pdftk "$i" cat 1 output ../../IndividualRotated/"$f"/"$i"; else pdftk "$i" cat 1left output ../../IndividualRotated/"$f"/"$i"; fi; 
+		if [ $HeightGreaterEqWidth -eq 1 ]; then 
+			while ! pdftk "$i" cat 1-$NumberOfPagesPerAssignment output ../../IndividualRotated/"$f"/"$i"; do echo "Document has less than $i pages. Trying again with $((i-1)) pages"; i=$((i-1)); done
+		else 
+			while ! pdftk "$i" cat 1-${NumberOfPagesPerAssignment}left output ../../IndividualRotated/"$f"/"$i"; do echo "Document has less than $i pages. Trying again with $((i-1)) pages"; i=$((i-1)); done
+		fi; 
 	done; 
 	popd > /dev/null;
 done
