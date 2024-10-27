@@ -76,7 +76,7 @@ echo -e "\n"
 echo "Dieses Skript kann nur mit .pdf, .jpg, .jpeg-, png- und .sec-Dateien umgehen."
 echo "Falls andere Dateien dabei sind, die Sie ebenfalls in das Pdf-Booklet integrieren möchten,"
 echo "bitte jetzt entsprechend manuell in .pdf-Dateien konvertieren, bevor Sie fortfahren."
-echo "Oft wurde auch nur die Dateiendung .pdf vergessen, hier hilft ein einfaches umbenennen."
+echo "Evtl. wurde auch nur die Dateiendung .pdf vergessen, hier hilft ein einfaches umbenennen."
 echo -e "\n<Enter> drücken, um fortzufahren!\n"
 read
 echo "Ich fahre fort und konvertiere alle jpg-, jpeg-, png- und sec-Bilder:"
