@@ -129,10 +129,11 @@ for f in *; do mkdir -p ../IndividualRotated/"$f"; pushd "$f" > /dev/null;
 		# to compare height and width, we need to use bc rather than bash, because
 		# bash can only handle integers...
 		HeightGreaterEqWidth=$((`echo "$PdfHeight >= $PdfWidth"| bc`))
+		NumberOfPagesThisFile=$NumberOfPagesPerAssignment;
 		if [ $HeightGreaterEqWidth -eq 1 ]; then 
-			while ! pdftk "$i" cat 1-$NumberOfPagesPerAssignment output ../../IndividualRotated/"$f"/"$i"; do echo "Document has less than $i pages. Trying again with $((i-1)) pages"; i=$((i-1)); done
+			while ! pdftk "$i" cat 1-$NumberOfPagesThisFile output ../../IndividualRotated/"$f"/"$i"; do echo "Document has less than $NumberOfPagesThisFile pages. Trying again with $((NumberOfPagesThisFile-1)) pages"; NumberOfPagesThisFile=$((NumberOfPagesThisFile-1)); if ! ((NumberOfPagesThisFile>0)); then break; fi; done
 		else 
-			while ! pdftk "$i" cat 1-${NumberOfPagesPerAssignment}left output ../../IndividualRotated/"$f"/"$i"; do echo "Document has less than $i pages. Trying again with $((i-1)) pages"; i=$((i-1)); done
+			while ! pdftk "$i" cat 1-${NumberOfPagesPerAssignment}left output ../../IndividualRotated/"$f"/"$i"; do echo "Document has less than $NumberOfPagesPerAssignment pages. Trying again with $((NumberOfPagesPerAssignment-1)) pages"; NumberOfPagesPerAssignment=$((NumberOfPagesPerAssignment-1)); if ! ((NumberOfPagesPerAssignment>0)); then break; fi; done
 		fi; 
 	done; 
 	popd > /dev/null;
@@ -150,3 +151,4 @@ echo
 cd "$basedir/A5FinalPages"
 for d in *; do pdftk "$d"/*.pdf cat output ../FinalBooklets/"$d".pdf; done
 echo -e "FERTIG!\n"
+echo -e "Die Ergebnisse finden Sie im Ordner \"FinalBooklets\"."
