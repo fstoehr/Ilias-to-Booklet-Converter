@@ -2,6 +2,7 @@
   description = "ILIAS to Booklet conversion script";
 
   inputs.flake-utils.url = "github:numtide/flake-utils";
+  inputs.nixpkgs.url = "nixpkgs/nixos-24.05";
 
   outputs = { self, nixpkgs, flake-utils }: 
     flake-utils.lib.eachDefaultSystem (system: 

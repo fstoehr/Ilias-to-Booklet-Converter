@@ -46,6 +46,19 @@ nix --extra-experimental-feature "flakes nix-command" github:fstoehr/Ilias-to-Bo
 nix --extra-experimental-feature "flakes nix-command" profile install github:fstoehr/Ilias-to-Booklet-Converter
 ```
 
+#### Use nix unstable / your system (registry) version of nixpkgs
+
+The flake is set up for the script to use the last version of the programs the script uses that I tested from nix-stable. If you'd like to use a newer version of these programs, for instance, because you already have a newer version in your nix store and don't want to download an extra copy just for this script, you can use the `--override-input nixpkgs nixpkgs` option:
+
+```
+nix github:fstoehr/Ilias-to-Booklet-Converter --override-input nixpkgs nixpkgs
+nix profile install github:fstoehr/Ilias-to-Booklet-Converter --override-input nixpkgs nixpkgs
+```
+
+This will use the current nixpkgs in your registry. Note that this is usually a version the script hasn't be tested with, so if you run into any problems, try running again without the `--override-input nixpkgs nixpkgs`. Such problems are very unlikely to occur though.
+
+
+
 ### Using your distribution's package manager
 
 #### 1. Install dependencies
