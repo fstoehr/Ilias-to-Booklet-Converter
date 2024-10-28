@@ -19,39 +19,60 @@ create_target_directories() {
   mkdir FinalBooklets
 }
 
+exit_if_commands_not_installed() {
+  if [ "$commands_not_installed" -eq 1 ]; then
+    if ((DontRequireCommands!=1)); then
+      #echo -e "\nSome required commands are not installed. Exiting."
+      echo -e "\nEinige benötigte Befehle sind nicht installiert. Breche ab."
+      exit 1
+    else
+      #echo -e "\nTrying to continue even though some required commands are not installed.\n"
+      echo -e "\nIch versuche fortzufahren, obwohl einige benötigte Befehle nicht installiert sind.\n"
+    fi
+  fi
+}
+
 # Only use the first page of each assignment. Can be changed by setting NumberOfPagesPerAssignment variable (in bash)
 if ! ((NumberOfPagesPerAssignment>0)); then NumberOfPagesPerAssignment=1; fi
 if ((AutoContinue!=1)); then AutoContinue=0; fi
+if ((DontRequireCommands!=1)); then DontRequireCommands=0; fi
 
 
+# use magick if it is installed (ImageMagick7+), but convert if it isn't (ImageMagick6-)
+if command -v magick > /dev/null 2>&1; then
+	#echo "ImageMagick 7+ found, using the \"magick\" command."
+	echo "ImageMagick 7+ wurde gefunden, benutze den \"magick\"-Befehl."
+	MAGICKCOMMAND="magick"
+else
+	if command -v convert > /dev/null 2>&1; then
+		#echo "ImageMagick 6- found, using the \"convert\" command."
+		echo "ImageMagick 6- wurde gefunden, benutze den \"convert\"-Befehl."
+		MAGICKCOMMAND="convert"
+	else
+		# echo "ImageMagick not found! Exiting."
+		#echo "Please install ImageMagick!"
+		echo "ImageMagick wurde nicht gefunden!"
+		echo "Bitte installieren Sie ImageMagick!"
+		commands_not_installed=1;
+	fi
+fi
 
-# List of commands to check
+# List of additional commands to check
 usedcommands=("ls" "gs" "pdfinfo" "7z" "pdftk" "find" "bc" "sed" "mv")
 
 # Check for each command this script needs
+commands_not_installed=0
 for cmd in "${usedcommands[@]}"; do
     if ! command -v "$cmd" &> /dev/null; then
         #echo "Error: $cmd is not installed or not in your PATH."
         echo "Fehler: $cmd ist nicht installiert oder nicht im PATH."
 	echo "Bitte installieren Sie $cmd!"
-        exit 1
+	commands_not_installed=1;
     fi
 done
 
-# use magick if it is installed (ImageMagick7+), but convert if it isn't (ImageMagick6-)
-if command -v magick > /dev/null 2>&1; then
-	echo "ImageMagick 7+ found, using the \"magick\" command."
-	MAGICKCOMMAND="magick"
-else
-	if command -v convert > /dev/null 2>&1; then
-		echo "ImageMagick 6- found, using the \"convert\" command."
-		MAGICKCOMMAND="convert"
-	else
-		echo "ImageMagick not found! Exiting."
-		echo "Please install ImageMagick!"
-		exit 1
-	fi
-fi
+
+exit_if_commands_not_installed
 
 
 
