@@ -11,7 +11,7 @@ wait_for_enter() {
 
 create_target_directories() {
 
-  echo -e "erstelle Verzeichnisse\n"
+  echo -e "Erstelle Verzeichnisse.\n"
   mkdir VonIlias
   mkdir Sorted
   mkdir IndividualRotated
@@ -32,11 +32,7 @@ exit_if_commands_not_installed() {
   fi
 }
 
-# Only use the first page of each assignment. Can be changed by setting NumberOfPagesPerAssignment variable (in bash)
-if ! ((NumberOfPagesPerAssignment>0)); then NumberOfPagesPerAssignment=1; fi
-if ((AutoContinue!=1)); then AutoContinue=0; fi
-if ((DontRequireCommands!=1)); then DontRequireCommands=0; fi
-
+check_for_required_commands() {
 
 # use magick if it is installed (ImageMagick7+), but convert if it isn't (ImageMagick6-)
 if command -v magick > /dev/null 2>&1; then
@@ -58,7 +54,7 @@ else
 fi
 
 # List of additional commands to check
-usedcommands=("ls" "gs" "pdfinfo" "7z" "pdftk" "find" "bc" "sed" "cp")
+usedcommands=("ls" "gs" "pdfinfo" "7z" "pdftk" "find" "bc" "sed" "cp" "mv" "file" "tee")
 
 # Check for each command this script needs
 commands_not_installed=0
@@ -71,6 +67,16 @@ for cmd in "${usedcommands[@]}"; do
     fi
 done
 
+}
+
+# Only use the first page of each assignment. Can be changed by setting NumberOfPagesPerAssignment variable (in bash)
+if ! ((NumberOfPagesPerAssignment>0)); then NumberOfPagesPerAssignment=1; fi
+if ((AutoContinue!=1)); then AutoContinue=0; fi
+if ((DontRequireCommands!=1)); then DontRequireCommands=0; fi
+
+
+
+check_for_required_commands
 
 exit_if_commands_not_installed
 
@@ -160,21 +166,49 @@ echo -e "\n \n \n"
 
 echo -e "=============================================================================\n"
 
-echo "Ich versuche jetzt, alle Dateien, die keine Pdfs sind, in Pdfs zu konvertieren."
+echo "Ich versuche gleich, alle Dateien, die keine Pdfs sind, in Pdfs zu konvertieren."
 echo "Dieses Skript konvertert .jpg, .jpeg-, png- und .sec-Dateien automatisch."
 echo "Dazu müssen die Dateien auch die entsprechenden Endungen haben!"
 echo -e "Andere Dateien müssen manuell konvertiert werden.\n"
 
 echo -e "-----------------------------------------------------------------------------"
-echo "Ich suche jetzt Dateien, die keine Pdfs sind und die nicht automatisch konvertiert werden können:"
+echo "Ich suche jetzt Dateien, die eine falsche Dateiendung haben, aber Pdfs sind und automatisch konvertiert werden können. Diese Dateien werden zunächst umbenannt."
 echo
-find ./ -type f -ipath "*/Abgaben/*" -not -iname "*.pdf" -and -not -iname "*.jpg" -and -not -iname "*.jpeg" -and -not -iname "*.sec" -and -not -iname "*.png"
-echo -e "-----------------------------------------------------------------------------\n"
-echo -e "\n"
-echo "Dieses Skript kann nur mit .pdf, .jpg, .jpeg-, png- und .sec-Dateien umgehen."
-echo "Falls andere Dateien dabei sind, die Sie ebenfalls in das Pdf-Booklet integrieren möchten,"
-echo "bitte jetzt entsprechend manuell in .pdf-Dateien konvertieren, bevor Sie fortfahren."
-echo "Evtl. wurde auch nur die Dateiendung .pdf vergessen, hier hilft ein einfaches umbenennen."
+find ./ -type f -ipath "*/Abgaben/*" -not -iname "*.pdf" -and -not -iname "*.jpg" -and -not -iname "*.jpeg" -and -not -iname "*.sec" -and -not -iname "*.png" | while read -r currentfile; do
+  filetype=$(file --mime-type -b "$currentfile")
+  case "$filetype" in
+    application/pdf)
+      echo -e "Renaming\n$currentfile\nto\n$currentfile.pdf\n"
+      mv -n "$currentfile" "$currentfile.pdf"
+      ;;
+    image/jpeg)
+      echo "Renaming\n$currentfile\nto\n$currentfile.jpg\n"
+      mv -n "$currentfile" "$currentfile.jpg"
+      ;;
+    image/png)
+      echo "Renaming\n$currentfile\nto\n$currentfile.png\n"
+      mv -n "$currentfile" "$curretfile.png"
+      ;;
+    esac
+done
+
+
+echo -e "\n\n-----------------------------------------------------------------------------"
+echo "Ich suche jetzt Dateien, die keine Pdfs sind und die nicht automatisch konvertiert werden können:"
+echo ""
+
+files_i_cant_convert=$(find ./ -type f -ipath "*/Abgaben/*" -not -iname "*.pdf" -and -not -iname "*.jpg" -and -not -iname "*.jpeg" -and -not -iname "*.sec" -and -not -iname "*.png" | tee /dev/tty)
+
+if [ -z $files_i_cant_convert ]
+  then
+    echo -e "Keine nicht-konvertierbaren Dateien gefunden! :-)"
+  else
+    echo -e "-----------------------------------------------------------------------------\n"
+    echo -e "\n"
+    echo "Dieses Skript kann nur mit .pdf, .jpg, .jpeg-, png- und .sec-Dateien umgehen."
+    echo "Falls andere Dateien dabei sind, die Sie ebenfalls in das Pdf-Booklet integrieren möchten,"
+    echo "bitte jetzt entsprechend manuell in .pdf-Dateien konvertieren, bevor Sie fortfahren."
+fi
 echo -e "\n<Enter> drücken, um fortzufahren!\n"
 wait_for_enter
 echo "Ich fahre fort und konvertiere alle jpg-, jpeg-, png- und sec-Bilder:"

@@ -13,7 +13,8 @@
         commands-used-in-script = with pkgs; [ 
             p7zip findutils imagemagick gnused bc pdftk ghostscript
             poppler_utils # for pdfinfo
-            coreutils # for mv
+            coreutils # for mv, cp, tee
+						file
           ];
         #ilias-to-booklet = (pkgs.writeScriptBin my-name (builtins.readFile ./ilias-to-booklet.sh)).overrideAttrs (old: {
         #  buildCommand = "${old.buildCommand}\n patchShebangs $out";
