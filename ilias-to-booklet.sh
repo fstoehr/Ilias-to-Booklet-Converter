@@ -58,7 +58,7 @@ else
 fi
 
 # List of additional commands to check
-usedcommands=("ls" "gs" "pdfinfo" "7z" "pdftk" "find" "bc" "sed" "mv")
+usedcommands=("ls" "gs" "pdfinfo" "7z" "pdftk" "find" "bc" "sed" "cp")
 
 # Check for each command this script needs
 commands_not_installed=0
@@ -136,7 +136,7 @@ else
 	  # do nothing
 	;;
       *)
-	mv "$dir" ./
+	cp -R "$dir" ./
       esac
     fi
   done
