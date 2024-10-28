@@ -25,7 +25,7 @@ read
 
 if [ -d VonIlias ] || [ -d Sorted ] || [-d IndividualRotated ] || [ -d A5FinalPages ] || -d [ FinalBooklets ]; then
 	echo "Es sieht so aus, als wurde das Skript schon mal in diesem Verzeichnis ausgeführt."
-	echo "Wenn Sie das Skript noch mal ausführen möchten, löschen Siette zuerst"
+	echo "Wenn Sie das Skript noch mal ausführen möchten, löschen Sie bitte zuerst"
 	echo "alle Dateien in diesem Verzeichnis, die bei den letzten Durchläufen erstellt wurden."
 	echo "Das sind die Ordner \"VonIlias\", \"Sorted\", \"IndividualRotated\", \"A5FinalPages\", \"FinalBooklets\"."
 	exit 1
