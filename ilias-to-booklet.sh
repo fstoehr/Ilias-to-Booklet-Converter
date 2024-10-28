@@ -73,7 +73,7 @@ done
 if ! ((NumberOfPagesPerAssignment>0)); then NumberOfPagesPerAssignment=1; fi
 if ((AutoContinue!=1)); then AutoContinue=0; fi
 if ((DontRequireCommands!=1)); then DontRequireCommands=0; fi
-if ((AcceptMoreThanOneFile!=1)); then AcceptMoreThanOneFile=0; fi
+# if ((AcceptMoreThanOneFile!=1)); then AcceptMoreThanOneFile=0; fi # not yet implemented, and perhaps never will be
 
 
 
@@ -219,7 +219,6 @@ echo -e "\nBeginne mit der Konvertierung der Bilder, das kann eine Weile dauern.
 
 
 echo
-# TODO: only convert if no pdf file in directory, unless AcceptMoreThanOneFile==1.
 find ./ -type f -iname "*.jpg" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.jpg}".pdf; done
 find ./ -type f -iname "*.jpeg" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.jpeg}".pdf; done
 find ./ -type f -iname "*.sec" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.sec}".pdf; done
