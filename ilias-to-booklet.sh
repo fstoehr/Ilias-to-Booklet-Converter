@@ -1,7 +1,60 @@
 #!/bin/env bash
 
+wait_for_enter() {
+  if [ "$AutoContinue" -eq 1 ]; then
+    #echo -e "\nScript is set to continue automatically, not waiting for user input.\n"
+    echo -e "\nOption, automatisch durchzulaufen, ist gesetzt. Fahre einfach fort ohne Benutzereingabe.\n"
+  else
+    read
+  fi
+}
+
+create_target_directories() {
+
+  echo -e "erstelle Verzeichnisse\n"
+  mkdir VonIlias
+  mkdir Sorted
+  mkdir IndividualRotated
+  mkdir A5FinalPages
+  mkdir FinalBooklets
+}
+
 # Only use the first page of each assignment. Can be changed by setting NumberOfPagesPerAssignment variable (in bash)
 if ! ((NumberOfPagesPerAssignment>0)); then NumberOfPagesPerAssignment=1; fi
+if ((AutoContinue!=1)); then AutoContinue=0; fi
+
+
+
+# List of commands to check
+usedcommands=("ls" "gs" "pdfinfo" "7z" "pdftk" "find" "bc" "sed" "mv")
+
+# Check for each command this script needs
+for cmd in "${usedcommands[@]}"; do
+    if ! command -v "$cmd" &> /dev/null; then
+        #echo "Error: $cmd is not installed or not in your PATH."
+        echo "Fehler: $cmd ist nicht installiert oder nicht im PATH."
+	echo "Bitte installieren Sie $cmd!"
+        exit 1
+    fi
+done
+
+# use magick if it is installed (ImageMagick7+), but convert if it isn't (ImageMagick6-)
+if command -v magick > /dev/null 2>&1; then
+	echo "ImageMagick 7+ found, using the \"magick\" command."
+	MAGICKCOMMAND="magick"
+else
+	if command -v convert > /dev/null 2>&1; then
+		echo "ImageMagick 6- found, using the \"convert\" command."
+		MAGICKCOMMAND="convert"
+	else
+		echo "ImageMagick not found! Exiting."
+		echo "Please install ImageMagick!"
+		exit 1
+	fi
+fi
+
+
+
 
 # TODO: Funktionsbeschreibung des Skripts; Copyright
 echo -e "Dieses Skript erstellt aus Übungen, die über das ILIAS-LMS abgegeben wurden,\nBooklets, wie sie etwa für Klausuren eingesetzt werden können."
@@ -21,28 +74,52 @@ echo ""
 # bzw. "nix run github-link -- ./Pfad/zu/dem/Verzeichnis"
 
 echo -e " \nDrücken Sie <Enter>, um vortzufahren, oder <Strg-c>, um abzubrechen.\n"
-read
+wait_for_enter
 
-if [ -d VonIlias ] || [ -d Sorted ] || [-d IndividualRotated ] || [ -d A5FinalPages ] || -d [ FinalBooklets ]; then
-	echo "Es sieht so aus, als wurde das Skript schon mal in diesem Verzeichnis ausgeführt."
+if [ -d VonIlias ] || [ -d Sorted ] || [ -d IndividualRotated ] || [ -d A5FinalPages ] || [ -d FinalBooklets ]; then
+	echo "Es sieht so aus, als wurde das Skript schon einmal in diesem Verzeichnis ausgeführt."
 	echo "Wenn Sie das Skript noch mal ausführen möchten, löschen Sie bitte zuerst"
 	echo "alle Dateien in diesem Verzeichnis, die bei den letzten Durchläufen erstellt wurden."
 	echo "Das sind die Ordner \"VonIlias\", \"Sorted\", \"IndividualRotated\", \"A5FinalPages\", \"FinalBooklets\"."
 	exit 1
 fi
 
-echo -e "erstelle Verzeichnisse\n"
-mkdir VonIlias
-mkdir Sorted
-mkdir IndividualRotated
-mkdir A5FinalPages
-mkdir FinalBooklets
+create_target_directories
 
 basedir=`pwd`
 cd VonIlias
-echo -e  "\nExtrahiere Archive"
-echo
-for i in ../*.zip; do 7z -bb0 x "$i"; done
+
+if ls ../*.zip 1> /dev/null 2>&1; then
+  echo -e  "\nExtrahiere Archive"
+  echo
+  for i in ../*.zip; do 7z -bb0 x "$i"; done
+else
+  echo -e "\nKeine Zip-Archive gefunden.\n"
+  echo -e "Soll ich stattdessen alle Unterordner in diesem Ordner verwenden?"
+  echo -e "Dies ist dann sinnvoll, wenn diese Unterordner aus den entsprechenden, von ILIAS"
+  echo -e "generierten Zip-Dateien extrahiert sind. Unter MacOS geschieht das manchmal automatisch.\n"
+
+  echo -e "\n------------------------------------------"
+  echo -e "Das betrifft die folgenden Ordner:\n"
+  #shopt -s extglob # Enable extended globbing to make ls ignore files we've created ourselves
+  # ls -d ../*/ ! (*VonIlias|*Sorted|*IndividualRotated|*A5FinalPages|*FinalBooklets)
+  ls -d ../*/ | grep -vE "(VonIlias|Sorted|IndividualRotated|A5FinalPages|FinalBooklets)"
+  echo -e "------------------------------------------"
+
+  echo -e " \nDrücken Sie <Enter>, um vortzufahren, oder <Strg-c>, um abzubrechen.\n"
+  wait_for_enter
+  for dir in ../*/; do
+    if [ -d "$dir" ]; then
+      case "$(basename "$dir")" in 
+	VonIlias|Sorted|IndividualRotated|A5FinalPages|FinalBooklets)
+	  # do nothing
+	;;
+      *)
+	mv "$dir" ./
+      esac
+    fi
+  done
+fi
 
 echo -e "\n \n \n"
 
@@ -56,7 +133,7 @@ echo "Falls Sie die Reihenfolge manuell ändern möchten, können Sie das jetzt 
 echo "Sie die Unterordner im Verzeichnis \"VonIlias\" jetzt vor dem nächsten Schitt"
 echo "noch umbenennen."
 echo -e "\n<Enter> drücken, um mit dem nächsten Schritt fortzufahren!\n"
-read
+wait_for_enter
 
 echo -e "\n \n \n"
 
@@ -70,7 +147,7 @@ echo -e "Andere Dateien müssen manuell konvertiert werden.\n"
 echo -e "-----------------------------------------------------------------------------"
 echo "Ich suche jetzt Dateien, die keine Pdfs sind und die nicht automatisch konvertiert werden können:"
 echo
-find ./ -type f -not -iname "*.pdf" -and -not -iname "*.jpg" -and -not -iname "*.jpeg" -and -not -iname "*.sec" -and -not -iname "*.png"
+find ./ -type f -ipath "*/Abgaben/*" -not -iname "*.pdf" -and -not -iname "*.jpg" -and -not -iname "*.jpeg" -and -not -iname "*.sec" -and -not -iname "*.png"
 echo -e "-----------------------------------------------------------------------------\n"
 echo -e "\n"
 echo "Dieses Skript kann nur mit .pdf, .jpg, .jpeg-, png- und .sec-Dateien umgehen."
@@ -78,23 +155,9 @@ echo "Falls andere Dateien dabei sind, die Sie ebenfalls in das Pdf-Booklet inte
 echo "bitte jetzt entsprechend manuell in .pdf-Dateien konvertieren, bevor Sie fortfahren."
 echo "Evtl. wurde auch nur die Dateiendung .pdf vergessen, hier hilft ein einfaches umbenennen."
 echo -e "\n<Enter> drücken, um fortzufahren!\n"
-read
+wait_for_enter
 echo "Ich fahre fort und konvertiere alle jpg-, jpeg-, png- und sec-Bilder:"
 
-# use magick if it is installed (ImageMagick7+), but convert if it isn't (ImageMagick6-)
-if command -v magick > /dev/null 2>&1; then
-	echo "ImageMagick 7+ found, using the \"magick\" command."
-	MAGICKCOMMAND="magick"
-else
-	if command -v convert > /dev/null 2>&1; then
-		echo "ImageMagick 6- found, using the \"convert\" command."
-		MAGICKCOMMAND="convert"
-	else
-		echo "ImageMagick not found! Exiting."
-		echo "Please install ImageMagick!"
-		exit 1
-	fi
-fi
 
 echo -e "\nBeginne mit der Konvertierung der Bilder, das kann eine Weile dauern....\n"
 
@@ -138,6 +201,7 @@ for f in *; do mkdir -p ../IndividualRotated/"$f"; pushd "$f" > /dev/null;
 	done; 
 	popd > /dev/null;
 done
+echo -e "\n(Evtl. wurden gerade viele Warnungen über null-bytes angezeigt. Sie können ignoriert werden.)\n"
 echo -e "\n \n\n\n"
 
 echo -e "=============================================================================\n"
