@@ -252,16 +252,16 @@ echo "noch umbenennen."
 echo -e "\n<Enter> drücken, um mit dem nächsten Schritt fortzufahren!\n"
 wait_for_enter
 
-echo -e "\n \n \n"
+echo -e "\n \n"
 
-echo -e "=============================================================================\n"
+echo -e "=============================================================================\n\n"
 
 echo "Ich versuche gleich, alle Dateien, die keine Pdfs sind, in Pdfs zu konvertieren."
 echo "Dieses Skript konvertert .jpg, .jpeg-, png- und .sec-Dateien automatisch."
 echo "Dazu müssen die Dateien auch die entsprechenden Endungen haben!"
 echo -e "Andere Dateien müssen manuell konvertiert werden.\n"
 
-echo -e "-----------------------------------------------------------------------------"
+echo -e "-----------------------------------------------------------------------------\n"
 echo "Ich suche jetzt Dateien, die eine falsche Dateiendung haben, aber Pdfs sind und automatisch konvertiert werden können. Diese Dateien werden zunächst umbenannt."
 echo
 find ./ -type f -ipath "*/Abgaben/*" -not -iname "*.pdf" -and -not -iname "*.jpg" -and -not -iname "*.jpeg" -and -not -iname "*.sec" -and -not -iname "*.png" | while read -r currentfile; do
@@ -307,18 +307,17 @@ echo "Ich fahre fort und konvertiere alle jpg-, jpeg-, png- und sec-Bilder:"
 echo -e "\nBeginne mit der Konvertierung der Bilder, das kann eine Weile dauern....\n"
 
 
-echo
 find ./ -type f -iname "*.jpg" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.jpg}".pdf; done
 find ./ -type f -iname "*.jpeg" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.jpeg}".pdf; done
 find ./ -type f -iname "*.sec" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.sec}".pdf; done
 find ./ -type f -iname "*.png" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.png}".pdf; done
-echo -e "\n \n \n \n"
+echo -e "\nFertig!\n \n"
 echo "Sortiere Dateien nach Nutzern, Ergebnisse dann im Ordner \"Sorted\":"
 echo
 export n=1;
 for f in *; do pushd "$f/Abgaben/" > /dev/null; for i in *; do mkdir -p "../../../Sorted/$i"; cp -i "$i"/*.pdf "../../../Sorted/$i/"`printf '%02d' $n`.pdf; done; popd > /dev/null; (( n += 1 )); #echo $n; 
 done
-echo -e "\n \n"
+echo -e "\nFertig!\n"
 echo -e "=============================================================================\n"
 echo "Extrahiere von jedem Dokument nur die erste Seite, und rotiere sie wenn nötig:"
 echo "Die Ergebnisse kommen in den Ordner \"IndividualRotated\"."
@@ -347,14 +346,14 @@ for f in *; do mkdir -p ../IndividualRotated/"$f"; pushd "$f" > /dev/null;
 	popd > /dev/null;
 done
 # echo -e "\n(Evtl. wurden gerade viele Warnungen über null-bytes angezeigt. Sie können ignoriert werden.)\n"
-echo -e "\n \n\n\n"
+echo -e "\nFertig!\n\n\n"
 
 echo -e "=============================================================================\n"
 echo "Konvertiere Alle Seiten auf A5-Format. Die Ergebnisse kommen in den Ordner \"A5FinalPages\""
 cd "$basedir/IndividualRotated"
 for f in *; do mkdir -p ../A5FinalPages/"$f"; pushd "$f" > /dev/null; for i in *.pdf; do gs -q -o  ../../A5FinalPages/"$f"/"$i" -sDEVICE=pdfwrite -dDEVICEWIDTHPOINTS=421 -dDEVICEHEIGHTPOINTS=595 -dAutoRotatePages=/None -dPDFFitPage -dBATCH -dSAFER "$i"; done; popd > /dev/null; done
 # for f in *; do mkdir ../A5FinalPages/$f; pushd $f; for i in *.pdf; do gs -o  ../../A5FinalPages/$f/$i -sDEVICE=pdfwrite -dDEVICEWIDTHPOINTS=421 -dDEVICEHEIGHTPOINTS=595 -dFIXEDMEDIA -dAutoRotatePages=/None -dPDFFitPage -dBATCH -dSAFER $i; done; popd; done
-echo -e "\n \n"
+echo -e "\nFertig!\n\n"
 echo "Füge die einzelnen Seiten zusammen. Die Ergebnisse kommen in den Ordner \"FinalBooklets\""
 echo
 cd "$basedir/A5FinalPages"
