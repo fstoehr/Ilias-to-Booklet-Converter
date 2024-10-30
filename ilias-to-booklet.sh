@@ -3,7 +3,7 @@
 wait_for_enter() {
   if [ "$AutoContinue" -eq 1 ]; then
     #echo -e "\nScript is set to continue automatically, not waiting for user input.\n"
-    echo -e "\nOption, automatisch durchzulaufen, ist gesetzt. Fahre einfach fort ohne Benutzereingabe.\n"
+    echo -e "\nOption, automatisch durchzulaufen, ist gesetzt. Ich fahre einfach fort ohne Benutzereingabe.\n"
   else
     read
   fi
@@ -21,7 +21,8 @@ initialize_arguments() {
 
 print_script_info() {
 
-  echo -e "ilias-to-booklet-converter, Copyright (c) 2024 Fabian Stöhr, Universität Konstanz\n"
+  echo -e "\nilias-to-booklet-converter, Copyright (c) 2024 Fabian Stöhr, Universität Konstanz"
+  echo -e "===================================================================================\n"
   echo -e "Dieses Skript erstellt aus Übungen, die über das ILIAS-LMS abgegeben wurden,\nBooklets, wie sie etwa für Klausuren eingesetzt werden können."
   echo -e "Dazu muss das Skript in einem Verzeichnis ausgeführt werden, dass\nvon ILIAS heruntergeladene .Zip-Dateien mit einzelnen Übungen enthält."
   echo -e "Die Zip-Dateien werden extrahiert, die Dateien umsortiert, und für jeden\nTeilnehmer ein einzelnes Pdf mit allen eingereichten Übungen erstellt."
@@ -29,7 +30,7 @@ print_script_info() {
   echo -e "Die Reihenfolge der Seiten richtet sich nach den Namen\nder Übungen in ILIAS (alphabetisch sortiert)."
   echo ""
 
-  echo -e "Außerdem werden Bilddateien, die auf .jpg, .jpeg, .png  oder .sec enden,\n in Pdfs konvertiert."
+  echo -e "Außerdem werden Bilddateien, die auf .jpg, .jpeg, .png  oder .sec enden,\nin Pdfs konvertiert."
   echo -e "Die Seiten werden auf A5 skaliert und hochkant rotiert."
 
   # echo "Alternativ kann das Verzeichnis, in dem sich die .zip-Dateien befinden, auch als KommandozeilenArgument angegeben werden."
@@ -40,18 +41,19 @@ print_script_info() {
 
 print_command_line_argument_help() {
 
+  echo -e "\nKommandozeilenoptionen:\n-----------------------------\n"
   echo "-p, --pages-per-assignment number_of_pages"
-  echo "                             Die Anzahl an Seiten, die maximal von jeder eingereichten Datei ins Booklet übernommen werden sollen. (Standard: number_of_pages=1)."
+  echo "                        Die Anzahl an Seiten, die maximal von jeder eingereichten Datei ins Booklet übernommen werden sollen. (Voreingestellt: number_of_pages=1)."
   echo "-a, --auto-continue:"
-  echo "                             Skript pausiert nicht, sondern läuft komplett durch."
+  echo "                        Skript pausiert nicht, sondern läuft komplett durch."
   echo "--no-auto-continue:"
-  echo "                             Skript pausiert an einigen Stellen, damit manuel Änderungen an den Dateien vorgenommen werden, falls erwünscht. (Standard)"
+  echo "                        Skript pausiert an einigen Stellen, damit manuel Änderungen an den Dateien vorgenommen werden, falls erwünscht. (Voreingestellt)"
   echo "--no-check-commands:"
-  echo "                             Skript fährt auch dann fort, wenn nicht alle benötigten Programme installiert sind. Das führt in der Regel zu Fehlern."
+  echo "                        Skript fährt auch dann fort, wenn nicht alle benötigten Programme installiert sind. Das führt in der Regel zu Fehlern."
   echo "--check-commands:"
-  echo "                             Skript bricht ab, wenn nicht alle benötigten Programme installiert sind. (Standard)"
+  echo "                        Skript bricht ab, wenn nicht alle benötigten Programme installiert sind. (Voreingestellt)"
   echo "-h, --help:"
-  echo "                             Diese Hilfe."
+  echo "                        Diese Hilfe."
 
 }
 
@@ -84,12 +86,12 @@ check_for_required_commands() {
   # use magick if it is installed (ImageMagick7+), but convert if it isn't (ImageMagick6-)
   if command -v magick > /dev/null 2>&1; then
 	  #echo "ImageMagick 7+ found, using the \"magick\" command."
-	  echo "ImageMagick 7+ wurde gefunden, benutze den \"magick\"-Befehl."
+	  #echo "ImageMagick 7+ wurde gefunden, benutze den \"magick\"-Befehl."
 	  MAGICKCOMMAND="magick"
   else
 	  if command -v convert > /dev/null 2>&1; then
 		  #echo "ImageMagick 6- found, using the \"convert\" command."
-		  echo "ImageMagick 6- wurde gefunden, benutze den \"convert\"-Befehl."
+		  #echo "ImageMagick 6- wurde gefunden, benutze den \"convert\"-Befehl."
 		  MAGICKCOMMAND="convert"
 	  else
 		  # echo "ImageMagick not found! Exiting."
@@ -320,14 +322,14 @@ echo -e "\n \n"
 echo -e "=============================================================================\n"
 echo "Extrahiere von jedem Dokument nur die erste Seite, und rotiere sie wenn nötig:"
 echo "Die Ergebnisse kommen in den Ordner \"IndividualRotated\"."
-echo "Evtl. werden gleich viele Warnungen über null-bytes angezeigt. Sie können ignoriert werden."
-echo "(Diese Warnungen erscheinen u.A., wenn die Metadaten eines Pdfs keinen Titel enthalten.)"
+# echo "Evtl. werden gleich viele Warnungen über null-bytes angezeigt. Sie können ignoriert werden."
+# echo "(Diese Warnungen erscheinen u.A., wenn die Metadaten eines Pdfs keinen Titel enthalten.)"
 echo
 cd "$basedir/Sorted"
 for f in *; do mkdir -p ../IndividualRotated/"$f"; pushd "$f" > /dev/null; 
 	#echo "Rotating Student: $f"
 	for i in *.pdf; do 
-		export pdfinfooutput=`pdfinfo "$i"`
+		pdfinfooutput=$(pdfinfo "$i"|tr -d '\0') # removing \0s with tr to avoid constant warnings about ignoring null bytes.
 		page_width=$(echo "$pdfinfooutput" | sed -n 's/^Page size:[[:space:]]*\([0-9.]*\) x [0-9.]* pts.*/\1/p')
 		page_height=$(echo "$pdfinfooutput" | sed -n 's/^Page size:[[:space:]]*[0-9.]* x \([0-9.]*\) pts.*/\1/p')
 		page_rot=$(echo "$pdfinfooutput" | sed -n 's/^Page rot:[[:space:]]*\([0-9]*\)$/\1/p')
@@ -337,14 +339,14 @@ for f in *; do mkdir -p ../IndividualRotated/"$f"; pushd "$f" > /dev/null;
 		HeightGreaterEqWidth=$((`echo "$PdfHeight >= $PdfWidth"| bc`))
 		NumberOfPagesThisFile=$NumberOfPagesPerAssignment;
 		if [ $HeightGreaterEqWidth -eq 1 ]; then 
-			while ! pdftk "$i" cat 1-$NumberOfPagesThisFile output ../../IndividualRotated/"$f"/"$i"; do echo "Document has less than $NumberOfPagesThisFile pages. Trying again with $((NumberOfPagesThisFile-1)) pages"; NumberOfPagesThisFile=$((NumberOfPagesThisFile-1)); if ! ((NumberOfPagesThisFile>0)); then break; fi; done
+			while ! pdftk "$i" cat 1-$NumberOfPagesThisFile output ../../IndividualRotated/"$f"/"$i"; do echo "$i by $f: Document has less than $NumberOfPagesThisFile pages. Trying again with $((NumberOfPagesThisFile-1)) pages"; NumberOfPagesThisFile=$((NumberOfPagesThisFile-1)); if ! ((NumberOfPagesThisFile>0)); then break; fi; done
 		else 
-			while ! pdftk "$i" cat 1-${NumberOfPagesPerAssignment}left output ../../IndividualRotated/"$f"/"$i"; do echo "Document has less than $NumberOfPagesPerAssignment pages. Trying again with $((NumberOfPagesPerAssignment-1)) pages"; NumberOfPagesPerAssignment=$((NumberOfPagesPerAssignment-1)); if ! ((NumberOfPagesPerAssignment>0)); then break; fi; done
+			while ! pdftk "$i" cat 1-${NumberOfPagesPerAssignment}left output ../../IndividualRotated/"$f"/"$i"; do echo "$i by $f: Document has less than $NumberOfPagesPerAssignment pages. Trying again with $((NumberOfPagesPerAssignment-1)) pages"; NumberOfPagesPerAssignment=$((NumberOfPagesPerAssignment-1)); if ! ((NumberOfPagesPerAssignment>0)); then break; fi; done
 		fi; 
 	done; 
 	popd > /dev/null;
 done
-echo -e "\n(Evtl. wurden gerade viele Warnungen über null-bytes angezeigt. Sie können ignoriert werden.)\n"
+# echo -e "\n(Evtl. wurden gerade viele Warnungen über null-bytes angezeigt. Sie können ignoriert werden.)\n"
 echo -e "\n \n\n\n"
 
 echo -e "=============================================================================\n"
