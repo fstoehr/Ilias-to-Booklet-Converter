@@ -15,6 +15,7 @@
             poppler_utils # for pdfinfo
             coreutils # for mv, cp, tee
 						file
+						gnugrep
           ];
         #ilias-to-booklet = (pkgs.writeScriptBin my-name (builtins.readFile ./ilias-to-booklet.sh)).overrideAttrs (old: {
         #  buildCommand = "${old.buildCommand}\n patchShebangs $out";
