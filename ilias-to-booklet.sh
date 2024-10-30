@@ -21,7 +21,7 @@ initialize_arguments() {
 
 print_script_info() {
 
-  echo -e "\nilias-to-booklet-converter, Copyright (c) 2024 Fabian Stöhr, Universität Konstanz"
+  echo -e "\nilias-to-booklet-converter 0.1-git, Copyright (c) 2024 Fabian Stöhr, Universität Konstanz"
   echo -e "======================================================================\n"
   echo -e "Dieses Skript erstellt aus Übungen, die über das ILIAS-LMS abgegeben wurden,\nBooklets, wie sie etwa für Klausuren eingesetzt werden können."
   echo -e "Dazu muss das Skript in einem Verzeichnis ausgeführt werden, dass\nvon ILIAS heruntergeladene .Zip-Dateien mit einzelnen Übungen enthält."
@@ -42,6 +42,9 @@ print_script_info() {
 print_command_line_argument_help() {
 
   echo -e "\nKommandozeilenoptionen:\n------------------------------------------------------------\n"
+  echo -e "AUFRUF: ilias-to-booklet [OPTION] [VERZEICHNIS]\n"
+  echo -e "Mit [VERZEICHNIS] kann optional das Verzeichnis angegeben werden, in dem das Skript ausgeführt werden soll (das Verzeichnis mit den Zip-Dateien). Sonst wird das aktuelle Verzeichnis verwendet.\n\n\n"
+  echo -e "OPTIONEN:\n"
   echo "-p, --pages-per-assignment number_of_pages"
   echo "                        Die Anzahl an Seiten, die maximal von jeder eingereichten Datei ins Booklet übernommen werden sollen. (Voreingestellt: number_of_pages=1)."
   echo "-a, --auto-continue:"
@@ -188,7 +191,9 @@ if [[ "$run_in_dir" != "" ]]; then
 fi
 
 
-echo -e "Bitte fahren Sie nur fort, wenn das aktuelle (oder per Kommandozeilenoption\nausgewählte) Verzeichnis die aus ILIAS exportierten Zip-Dateien enthält."
+if [[ "$run_in_dir" == "" ]]; then
+  echo -e "\n\nBitte fahren Sie nur fort, wenn das aktuelle Verzeichnis die aus ILIAS\nexportierten Zip-Dateien oder aus ihnen extrahierte Ordner enthält."
+fi
 echo ""
 echo -e " \nDrücken Sie <Enter>, um vortzufahren, oder <Strg-c>, um abzubrechen.\n"
 wait_for_enter
@@ -220,7 +225,7 @@ else
   echo -e "generierten Zip-Dateien extrahiert sind. Unter MacOS geschieht das manchmal automatisch.\n"
 
   echo -e "\n------------------------------------------------------------"
-  echo -e "Das betrifft die folgenden Ordner:\n"
+  echo -e "Das betrifft die folgenden Unterordner:\n"
   #shopt -s extglob # Enable extended globbing to make ls ignore files we've created ourselves
   # ls -d ../*/ ! (*VonIlias|*Sorted|*IndividualRotated|*A5FinalPages|*FinalBooklets)
   ls -d ../*/ | cut -c 4- | grep -vE "(VonIlias|Sorted|IndividualRotated|A5FinalPages|FinalBooklets)"
@@ -285,6 +290,8 @@ find ./ -type f -ipath "*/Abgaben/*" -not -iname "*.pdf" -and -not -iname "*.jpg
     esac
 done
 
+echo -e "\nAlle entsprechenden Dateien wurden umbenannt."
+
 
 echo -e "\n\n------------------------------------------------------------"
 echo "Ich suche jetzt Dateien, die keine Pdfs sind und die nicht automatisch konvertiert werden können:"
@@ -292,6 +299,7 @@ echo ""
 
 files_i_cant_convert=$(find ./ -type f -ipath "*/Abgaben/*" -not -iname "*.pdf" -and -not -iname "*.jpg" -and -not -iname "*.jpeg" -and -not -iname "*.sec" -and -not -iname "*.png" | tee /dev/tty)
 
+echo -e "Fertig!\n"
 if [ -z $files_i_cant_convert ]
   then
     echo -e "Keine nicht-konvertierbaren Dateien gefunden! :-)"
@@ -308,14 +316,14 @@ echo -e "------------------------------------------------------------"
 echo "Ich fahre fort und konvertiere alle jpg-, jpeg-, png- und sec-Bilder:"
 
 
-echo -e "\nBeginne mit der Konvertierung der Bilder, das kann eine Weile dauern....\n"
+echo -e "\nBeginne mit der Konvertierung der Bilder, das kann eine Weile dauern.\n"
 
 
-find ./ -type f -iname "*.jpg" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.jpg}".pdf; done
-find ./ -type f -iname "*.jpeg" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.jpeg}".pdf; done
-find ./ -type f -iname "*.sec" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.sec}".pdf; done
-find ./ -type f -iname "*.png" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.png}".pdf; done
-echo -e "\nFertig!\n \n"
+find ./ -type f -iname "*.jpg" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.jpg}".pdf && echo -n "."; done
+find ./ -type f -iname "*.jpeg" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.jpeg}".pdf && echo -n "."; done
+find ./ -type f -iname "*.sec" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.sec}".pdf && echo -n "."; done
+find ./ -type f -iname "*.png" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.png}".pdf && echo -n "."; done
+echo -e "\n\nFertig!\n \n"
 echo -e "======================================================================"
 echo "Sortiere Dateien nach Nutzern, Ergebnisse dann im Ordner \"Sorted\":"
 echo
@@ -324,7 +332,8 @@ for f in *; do pushd "$f/Abgaben/" > /dev/null; for i in *; do mkdir -p "../../.
 done
 echo -e "\nFertig!\n"
 echo -e "======================================================================\n"
-echo "Extrahiere von jedem Dokument nur die erste Seite, und rotiere sie wenn nötig:"
+echo "Extrahiere von jedem Dokument nur die erste Seite, und rotiere sie wenn nötig."
+echo "Das kann eine Weile dauern."
 echo "Die Ergebnisse kommen in den Ordner \"IndividualRotated\"."
 # echo "Evtl. werden gleich viele Warnungen über null-bytes angezeigt. Sie können ignoriert werden."
 # echo "(Diese Warnungen erscheinen u.A., wenn die Metadaten eines Pdfs keinen Titel enthalten.)"
@@ -332,6 +341,7 @@ echo
 cd "$basedir/Sorted"
 for f in *; do mkdir -p ../IndividualRotated/"$f"; pushd "$f" > /dev/null; 
 	#echo "Rotating Student: $f"
+	echo -n "|"
 	for i in *.pdf; do 
 		pdfinfooutput=$(pdfinfo "$i"|tr -d '\0') # removing \0s with tr to avoid constant warnings about ignoring null bytes.
 		page_width=$(echo "$pdfinfooutput" | sed -n 's/^Page size:[[:space:]]*\([0-9.]*\) x [0-9.]* pts.*/\1/p')
@@ -347,22 +357,24 @@ for f in *; do mkdir -p ../IndividualRotated/"$f"; pushd "$f" > /dev/null;
 		else 
 			while ! pdftk "$i" cat 1-${NumberOfPagesPerAssignment}left output ../../IndividualRotated/"$f"/"$i"; do echo "$i by $f: Document has less than $NumberOfPagesPerAssignment pages. Trying again with $((NumberOfPagesPerAssignment-1)) pages"; NumberOfPagesPerAssignment=$((NumberOfPagesPerAssignment-1)); if ! ((NumberOfPagesPerAssignment>0)); then break; fi; done
 		fi; 
+		echo -n "."
 	done; 
 	popd > /dev/null;
 done
 # echo -e "\n(Evtl. wurden gerade viele Warnungen über null-bytes angezeigt. Sie können ignoriert werden.)\n"
-echo -e "\nFertig!\n\n\n"
+echo -e "\n\n\nFertig!\n\n\n"
 
 echo -e "------------------------------------------------------------"
-echo "Konvertiere Alle Seiten auf A5-Format. Die Ergebnisse kommen in den Ordner \"A5FinalPages\""
+echo -e "Konvertiere Alle Seiten auf A5-Format. Die Ergebnisse kommen in den Ordner \"A5FinalPages\""
+echo -e "Das kann eine Weile dauern.\n"
 cd "$basedir/IndividualRotated"
-for f in *; do mkdir -p ../A5FinalPages/"$f"; pushd "$f" > /dev/null; for i in *.pdf; do gs -q -o  ../../A5FinalPages/"$f"/"$i" -sDEVICE=pdfwrite -dDEVICEWIDTHPOINTS=421 -dDEVICEHEIGHTPOINTS=595 -dAutoRotatePages=/None -dPDFFitPage -dBATCH -dSAFER "$i"; done; popd > /dev/null; done
+for f in *; do mkdir -p ../A5FinalPages/"$f"; pushd "$f" > /dev/null; echo -n "|"; for i in *.pdf; do gs -q -o  ../../A5FinalPages/"$f"/"$i" -sDEVICE=pdfwrite -dDEVICEWIDTHPOINTS=421 -dDEVICEHEIGHTPOINTS=595 -dAutoRotatePages=/None -dPDFFitPage -dBATCH -dSAFER "$i"; echo -n "."; done; popd > /dev/null; done
 # for f in *; do mkdir ../A5FinalPages/$f; pushd $f; for i in *.pdf; do gs -o  ../../A5FinalPages/$f/$i -sDEVICE=pdfwrite -dDEVICEWIDTHPOINTS=421 -dDEVICEHEIGHTPOINTS=595 -dFIXEDMEDIA -dAutoRotatePages=/None -dPDFFitPage -dBATCH -dSAFER $i; done; popd; done
 echo -e "\nFertig!\n\n"
 echo -e "------------------------------------------------------------"
 echo "Füge die einzelnen Seiten zusammen. Die Ergebnisse kommen in den Ordner \"FinalBooklets\""
 echo
 cd "$basedir/A5FinalPages"
-for d in *; do pdftk "$d"/*.pdf cat output ../FinalBooklets/"$d".pdf; done
-echo -e "FERTIG!\n"
+for d in *; do pdftk "$d"/*.pdf cat output ../FinalBooklets/"$d".pdf; echo -n "."; done
+echo -e "\n\nFERTIG!\n"
 echo -e "Die Ergebnisse finden Sie im Ordner \"FinalBooklets\"."
