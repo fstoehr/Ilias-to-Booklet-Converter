@@ -220,7 +220,7 @@ else
   echo -e "Das betrifft die folgenden Ordner:\n"
   #shopt -s extglob # Enable extended globbing to make ls ignore files we've created ourselves
   # ls -d ../*/ ! (*VonIlias|*Sorted|*IndividualRotated|*A5FinalPages|*FinalBooklets)
-  ls -d ../*/ | grep -vE "(VonIlias|Sorted|IndividualRotated|A5FinalPages|FinalBooklets)"
+  ls -d ../*/ | cut -c 4- | grep -vE "(VonIlias|Sorted|IndividualRotated|A5FinalPages|FinalBooklets)"
   echo -e "------------------------------------------"
 
   echo -e " \nDrücken Sie <Enter>, um vortzufahren, oder <Strg-c>, um abzubrechen.\n"
