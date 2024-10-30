@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 wait_for_enter() {
   if [ "$AutoContinue" -eq 1 ]; then
@@ -8,6 +8,53 @@ wait_for_enter() {
     read
   fi
 }
+
+initialize_arguments() {
+
+  # Only use the first page of each assignment. Can be changed by setting NumberOfPagesPerAssignment variable (in bash)
+  if ! ((NumberOfPagesPerAssignment>0)); then NumberOfPagesPerAssignment=1; fi
+  if ((AutoContinue!=1)); then AutoContinue=0; fi
+  if ((DontRequireCommands!=1)); then DontRequireCommands=0; fi
+  # if ((AcceptMoreThanOneFile!=1)); then AcceptMoreThanOneFile=0; fi # not yet implemented, and perhaps never will be, since ILIAS already limits the number of files students can hand in.
+
+}
+
+print_script_info() {
+
+  echo -e "ilias-to-booklet-converter, Copyright (c) 2024 Fabian Stöhr, Universität Konstanz\n"
+  echo -e "Dieses Skript erstellt aus Übungen, die über das ILIAS-LMS abgegeben wurden,\nBooklets, wie sie etwa für Klausuren eingesetzt werden können."
+  echo -e "Dazu muss das Skript in einem Verzeichnis ausgeführt werden, dass\nvon ILIAS heruntergeladene .Zip-Dateien mit einzelnen Übungen enthält."
+  echo -e "Die Zip-Dateien werden extrahiert, die Dateien umsortiert, und für jeden\nTeilnehmer ein einzelnes Pdf mit allen eingereichten Übungen erstellt."
+  echo -e "Dabei wird aus jeder eingereichten Pdf-Datei nur die erste Seite berücksichtigt."
+  echo -e "Die Reihenfolge der Seiten richtet sich nach den Namen\nder Übungen in ILIAS (alphabetisch sortiert)."
+  echo ""
+
+  echo -e "Außerdem werden Bilddateien, die auf .jpg, .jpeg, .png  oder .sec enden,\n in Pdfs konvertiert."
+  echo -e "Die Seiten werden auf A5 skaliert und hochkant rotiert."
+
+  # echo "Alternativ kann das Verzeichnis, in dem sich die .zip-Dateien befinden, auch als KommandozeilenArgument angegeben werden."
+  # echo "Beispiel: $0 ./Pfad/zu/dem/Verzeichnis"
+  # bzw. "nix run github-link -- ./Pfad/zu/dem/Verzeichnis"
+
+}
+
+print_command_line_argument_help() {
+
+  echo "-p, --pages-per-assignment number_of_pages"
+  echo "                             Die Anzahl an Seiten, die maximal von jeder eingereichten Datei ins Booklet übernommen werden sollen. (Standard: number_of_pages=1)."
+  echo "-a, --auto-continue:"
+  echo "                             Skript pausiert nicht, sondern läuft komplett durch."
+  echo "--no-auto-continue:"
+  echo "                             Skript pausiert an einigen Stellen, damit manuel Änderungen an den Dateien vorgenommen werden, falls erwünscht. (Standard)"
+  echo "--no-check-commands:"
+  echo "                             Skript fährt auch dann fort, wenn nicht alle benötigten Programme installiert sind. Das führt in der Regel zu Fehlern."
+  echo "--check-commands:"
+  echo "                             Skript bricht ab, wenn nicht alle benötigten Programme installiert sind. (Standard)"
+  echo "-h, --help:"
+  echo "                             Diese Hilfe."
+
+}
+
 
 create_target_directories() {
 
@@ -34,48 +81,89 @@ exit_if_commands_not_installed() {
 
 check_for_required_commands() {
 
-# use magick if it is installed (ImageMagick7+), but convert if it isn't (ImageMagick6-)
-if command -v magick > /dev/null 2>&1; then
-	#echo "ImageMagick 7+ found, using the \"magick\" command."
-	echo "ImageMagick 7+ wurde gefunden, benutze den \"magick\"-Befehl."
-	MAGICKCOMMAND="magick"
-else
-	if command -v convert > /dev/null 2>&1; then
-		#echo "ImageMagick 6- found, using the \"convert\" command."
-		echo "ImageMagick 6- wurde gefunden, benutze den \"convert\"-Befehl."
-		MAGICKCOMMAND="convert"
-	else
-		# echo "ImageMagick not found! Exiting."
-		#echo "Please install ImageMagick!"
-		echo "ImageMagick wurde nicht gefunden!"
-		echo "Bitte installieren Sie ImageMagick!"
-		commands_not_installed=1;
-	fi
-fi
+  # use magick if it is installed (ImageMagick7+), but convert if it isn't (ImageMagick6-)
+  if command -v magick > /dev/null 2>&1; then
+	  #echo "ImageMagick 7+ found, using the \"magick\" command."
+	  echo "ImageMagick 7+ wurde gefunden, benutze den \"magick\"-Befehl."
+	  MAGICKCOMMAND="magick"
+  else
+	  if command -v convert > /dev/null 2>&1; then
+		  #echo "ImageMagick 6- found, using the \"convert\" command."
+		  echo "ImageMagick 6- wurde gefunden, benutze den \"convert\"-Befehl."
+		  MAGICKCOMMAND="convert"
+	  else
+		  # echo "ImageMagick not found! Exiting."
+		  #echo "Please install ImageMagick!"
+		  echo "ImageMagick wurde nicht gefunden!"
+		  echo "Bitte installieren Sie ImageMagick!"
+		  commands_not_installed=1;
+	  fi
+  fi
 
-# List of additional commands to check
-usedcommands=("ls" "gs" "pdfinfo" "7z" "pdftk" "find" "bc" "sed" "cp" "mv" "file" "tee")
+  # List of additional commands to check
+  usedcommands=("ls" "gs" "pdfinfo" "7z" "pdftk" "find" "bc" "sed" "cp" "mv" "file" "tee")
 
-# Check for each command this script needs
-commands_not_installed=0
-for cmd in "${usedcommands[@]}"; do
-    if ! command -v "$cmd" &> /dev/null; then
-        #echo "Error: $cmd is not installed or not in your PATH."
-        echo "Fehler: $cmd ist nicht installiert oder nicht im PATH."
-	echo "Bitte installieren Sie $cmd!"
-	commands_not_installed=1;
-    fi
-done
+  # Check for each command this script needs
+  commands_not_installed=0
+  for cmd in "${usedcommands[@]}"; do
+      if ! command -v "$cmd" &> /dev/null; then
+	  #echo "Error: $cmd is not installed or not in your PATH."
+	  echo "Fehler: $cmd ist nicht installiert oder nicht im PATH."
+	  echo "Bitte installieren Sie $cmd!"
+	  commands_not_installed=1;
+      fi
+  done
 
 }
 
-# Only use the first page of each assignment. Can be changed by setting NumberOfPagesPerAssignment variable (in bash)
-if ! ((NumberOfPagesPerAssignment>0)); then NumberOfPagesPerAssignment=1; fi
-if ((AutoContinue!=1)); then AutoContinue=0; fi
-if ((DontRequireCommands!=1)); then DontRequireCommands=0; fi
-# if ((AcceptMoreThanOneFile!=1)); then AcceptMoreThanOneFile=0; fi # not yet implemented, and perhaps never will be
 
+#### MAIN ####
 
+run_in_dir=""
+
+#### PARSING COMMAND LINE ARGUMENTS ####
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -p|--pages-per-assignment)
+      NumberOfPagesPerAssignment="$2" # if non-number entered, is set to 1.
+      shift
+      shift
+      ;;
+    -a|--auto-continue)
+      AutoContinue=1
+      shift
+      ;;
+    --no-auto-continue)
+      AutoContinue=0
+      shift
+      ;;
+    --no-check-commands)
+      DontRequireCommands=1
+      shift
+      ;;
+    --check-commands)
+      DontRequireCommands=0
+      shift
+      ;;
+    -h|--help)
+      print_script_info
+      echo ""
+      print_command_line_argument_help
+      exit 0
+      ;;
+    -*|--*)
+      echo "Unbekannte Option: $1"
+      exit 1
+      ;;
+    *)
+      run_in_dir="$1"
+      shift
+      ;;
+  esac
+done
+
+initialize_arguments # Initialize arguments if not explicitly set by command line arguments
 
 check_for_required_commands
 
@@ -83,24 +171,23 @@ exit_if_commands_not_installed
 
 
 
+print_script_info
 
-# TODO: Funktionsbeschreibung des Skripts; Copyright
-echo -e "Dieses Skript erstellt aus Übungen, die über das ILIAS-LMS abgegeben wurden,\nBooklets, wie sie etwa für Klausuren eingesetzt werden können."
-echo -e "Dazu muss das Skript in einem Verzeichnis ausgeführt werden, dass\nvon ILIAS heruntergeladene .Zip-Dateien mit einzelnen Übungen enthält."
-echo -e "Die Zip-Dateien werden extrahiert, die Dateien umsortiert, und für jeden\nTeilnehmer ein einzelnes Pdf mit allen eingereichten Übungen erstellt."
-echo -e "Dabei wird aus jeder eingereichten Pdf-Datei nur die erste Seite berücksichtigt."
-echo -e "Die Reihenfolge der Seiten richtet sich nach den Namen\nder Übungen in ILIAS (alphabetisch sortiert)."
+if [[ "$run_in_dir" != "" ]]; then
+  if [ -d "$run_in_dir" ]; then
+    cd "$run_in_dir"
+  else
+    echo "Fehler: Verzeichnis $run_in_dir existiert nicht!"
+    echo "Ich breche ab!"
+    #echo "Directory $run_in_dir does not exist!"
+    #echo "Exiting..."
+    exit 1
+  fi
+fi
+
+
+echo -e "Bitte fahren Sie nur fort, wenn das aktuelle (oder per Kommandozeilenoption ausgewählte) Verzeichnis\ndie aus ILIAS exportierten Zip-Dateien enthält."
 echo ""
-
-echo -e "Außerdem werden Bilddateien, die auf .jpg, .jpeg, .png  oder .sec enden,\n in Pdfs konvertiert."
-echo -e "Die Seiten werden auf A5 skaliert und hochkant rotiert."
-echo -e "Bitte fahren Sie nur fort, wenn das aktuelle Verzeichnis\ndie aus ILIAS exportierten Zip-Dateien enthält."
-echo ""
-
-# echo "Alternativ kann das Verzeichnis, in dem sich die .zip-Dateien befinden, auch als KommandozeilenArgument angegeben werden."
-# echo "Beispiel: $0 ./Pfad/zu/dem/Verzeichnis"
-# bzw. "nix run github-link -- ./Pfad/zu/dem/Verzeichnis"
-
 echo -e " \nDrücken Sie <Enter>, um vortzufahren, oder <Strg-c>, um abzubrechen.\n"
 wait_for_enter
 
@@ -179,15 +266,15 @@ find ./ -type f -ipath "*/Abgaben/*" -not -iname "*.pdf" -and -not -iname "*.jpg
   filetype=$(file --mime-type -b "$currentfile")
   case "$filetype" in
     application/pdf)
-      echo -e "Renaming\n$currentfile\nto\n$currentfile.pdf\n"
+      echo -e "Benenne um:\n$currentfile\nzu\n$currentfile.pdf\n"
       mv -n "$currentfile" "$currentfile.pdf"
       ;;
     image/jpeg)
-      echo "Renaming\n$currentfile\nto\n$currentfile.jpg\n"
+      echo "Benenne um:\n$currentfile\nzu\n$currentfile.jpg\n"
       mv -n "$currentfile" "$currentfile.jpg"
       ;;
     image/png)
-      echo "Renaming\n$currentfile\nto\n$currentfile.png\n"
+      echo "Benenne um:\n$currentfile\nzu\n$currentfile.png\n"
       mv -n "$currentfile" "$curretfile.png"
       ;;
     esac
