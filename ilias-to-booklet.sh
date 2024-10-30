@@ -22,7 +22,7 @@ initialize_arguments() {
 print_script_info() {
 
   echo -e "\nilias-to-booklet-converter, Copyright (c) 2024 Fabian Stöhr, Universität Konstanz"
-  echo -e "===================================================================================\n"
+  echo -e "======================================================================\n"
   echo -e "Dieses Skript erstellt aus Übungen, die über das ILIAS-LMS abgegeben wurden,\nBooklets, wie sie etwa für Klausuren eingesetzt werden können."
   echo -e "Dazu muss das Skript in einem Verzeichnis ausgeführt werden, dass\nvon ILIAS heruntergeladene .Zip-Dateien mit einzelnen Übungen enthält."
   echo -e "Die Zip-Dateien werden extrahiert, die Dateien umsortiert, und für jeden\nTeilnehmer ein einzelnes Pdf mit allen eingereichten Übungen erstellt."
@@ -41,7 +41,7 @@ print_script_info() {
 
 print_command_line_argument_help() {
 
-  echo -e "\nKommandozeilenoptionen:\n-----------------------------\n"
+  echo -e "\nKommandozeilenoptionen:\n------------------------------------------------------------\n"
   echo "-p, --pages-per-assignment number_of_pages"
   echo "                        Die Anzahl an Seiten, die maximal von jeder eingereichten Datei ins Booklet übernommen werden sollen. (Voreingestellt: number_of_pages=1)."
   echo "-a, --auto-continue:"
@@ -188,10 +188,11 @@ if [[ "$run_in_dir" != "" ]]; then
 fi
 
 
-echo -e "Bitte fahren Sie nur fort, wenn das aktuelle (oder per Kommandozeilenoption ausgewählte) Verzeichnis\ndie aus ILIAS exportierten Zip-Dateien enthält."
+echo -e "Bitte fahren Sie nur fort, wenn das aktuelle (oder per Kommandozeilenoption\nausgewählte) Verzeichnis die aus ILIAS exportierten Zip-Dateien enthält."
 echo ""
 echo -e " \nDrücken Sie <Enter>, um vortzufahren, oder <Strg-c>, um abzubrechen.\n"
 wait_for_enter
+echo -e "======================================================================"
 
 if [ -d VonIlias ] || [ -d Sorted ] || [ -d IndividualRotated ] || [ -d A5FinalPages ] || [ -d FinalBooklets ]; then
 	echo "Es sieht so aus, als wurde das Skript schon einmal in diesem Verzeichnis ausgeführt."
@@ -206,6 +207,8 @@ create_target_directories
 basedir=`pwd`
 cd VonIlias
 
+echo -e "------------------------------------------------------------"
+
 if ls ../*.zip 1> /dev/null 2>&1; then
   echo -e  "\nExtrahiere Archive"
   echo
@@ -216,12 +219,12 @@ else
   echo -e "Dies ist dann sinnvoll, wenn diese Unterordner aus den entsprechenden, von ILIAS"
   echo -e "generierten Zip-Dateien extrahiert sind. Unter MacOS geschieht das manchmal automatisch.\n"
 
-  echo -e "\n------------------------------------------"
+  echo -e "\n------------------------------------------------------------"
   echo -e "Das betrifft die folgenden Ordner:\n"
   #shopt -s extglob # Enable extended globbing to make ls ignore files we've created ourselves
   # ls -d ../*/ ! (*VonIlias|*Sorted|*IndividualRotated|*A5FinalPages|*FinalBooklets)
   ls -d ../*/ | cut -c 4- | grep -vE "(VonIlias|Sorted|IndividualRotated|A5FinalPages|FinalBooklets)"
-  echo -e "------------------------------------------"
+  echo -e "------------------------------------------------------------"
 
   echo -e " \nDrücken Sie <Enter>, um vortzufahren, oder <Strg-c>, um abzubrechen.\n"
   wait_for_enter
@@ -240,7 +243,7 @@ fi
 
 echo -e "\n \n \n"
 
-echo -e "=============================================================================\n"
+echo -e "======================================================================\n"
 
 echo "Im Verzeichnis \"VonIlias\" finden Sie jetzt die extrahierten Dateien der Übungen."
 echo "Die Einzelnen Übungen erscheinen in der Reihenfolge im Booklet, in der die Ordner in"
@@ -254,14 +257,14 @@ wait_for_enter
 
 echo -e "\n \n"
 
-echo -e "=============================================================================\n\n"
+echo -e "======================================================================\n\n"
 
 echo "Ich versuche gleich, alle Dateien, die keine Pdfs sind, in Pdfs zu konvertieren."
 echo "Dieses Skript konvertert .jpg, .jpeg-, png- und .sec-Dateien automatisch."
 echo "Dazu müssen die Dateien auch die entsprechenden Endungen haben!"
 echo -e "Andere Dateien müssen manuell konvertiert werden.\n"
 
-echo -e "-----------------------------------------------------------------------------\n"
+echo -e "------------------------------------------------------------\n"
 echo "Ich suche jetzt Dateien, die eine falsche Dateiendung haben, aber Pdfs sind und automatisch konvertiert werden können. Diese Dateien werden zunächst umbenannt."
 echo
 find ./ -type f -ipath "*/Abgaben/*" -not -iname "*.pdf" -and -not -iname "*.jpg" -and -not -iname "*.jpeg" -and -not -iname "*.sec" -and -not -iname "*.png" | while read -r currentfile; do
@@ -283,7 +286,7 @@ find ./ -type f -ipath "*/Abgaben/*" -not -iname "*.pdf" -and -not -iname "*.jpg
 done
 
 
-echo -e "\n\n-----------------------------------------------------------------------------"
+echo -e "\n\n------------------------------------------------------------"
 echo "Ich suche jetzt Dateien, die keine Pdfs sind und die nicht automatisch konvertiert werden können:"
 echo ""
 
@@ -293,7 +296,7 @@ if [ -z $files_i_cant_convert ]
   then
     echo -e "Keine nicht-konvertierbaren Dateien gefunden! :-)"
   else
-    echo -e "-----------------------------------------------------------------------------\n"
+    echo -e "------------------------------------------------------------\n"
     echo -e "\n"
     echo "Dieses Skript kann nur mit .pdf, .jpg, .jpeg-, png- und .sec-Dateien umgehen."
     echo "Falls andere Dateien dabei sind, die Sie ebenfalls in das Pdf-Booklet integrieren möchten,"
@@ -301,6 +304,7 @@ if [ -z $files_i_cant_convert ]
 fi
 echo -e "\n<Enter> drücken, um fortzufahren!\n"
 wait_for_enter
+echo -e "------------------------------------------------------------"
 echo "Ich fahre fort und konvertiere alle jpg-, jpeg-, png- und sec-Bilder:"
 
 
@@ -312,13 +316,14 @@ find ./ -type f -iname "*.jpeg" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i"
 find ./ -type f -iname "*.sec" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.sec}".pdf; done
 find ./ -type f -iname "*.png" | while ISF= read -r i; do ${MAGICKCOMMAND} "$i" "${i%.png}".pdf; done
 echo -e "\nFertig!\n \n"
+echo -e "======================================================================"
 echo "Sortiere Dateien nach Nutzern, Ergebnisse dann im Ordner \"Sorted\":"
 echo
 export n=1;
 for f in *; do pushd "$f/Abgaben/" > /dev/null; for i in *; do mkdir -p "../../../Sorted/$i"; cp -i "$i"/*.pdf "../../../Sorted/$i/"`printf '%02d' $n`.pdf; done; popd > /dev/null; (( n += 1 )); #echo $n; 
 done
 echo -e "\nFertig!\n"
-echo -e "=============================================================================\n"
+echo -e "======================================================================\n"
 echo "Extrahiere von jedem Dokument nur die erste Seite, und rotiere sie wenn nötig:"
 echo "Die Ergebnisse kommen in den Ordner \"IndividualRotated\"."
 # echo "Evtl. werden gleich viele Warnungen über null-bytes angezeigt. Sie können ignoriert werden."
@@ -348,12 +353,13 @@ done
 # echo -e "\n(Evtl. wurden gerade viele Warnungen über null-bytes angezeigt. Sie können ignoriert werden.)\n"
 echo -e "\nFertig!\n\n\n"
 
-echo -e "=============================================================================\n"
+echo -e "------------------------------------------------------------"
 echo "Konvertiere Alle Seiten auf A5-Format. Die Ergebnisse kommen in den Ordner \"A5FinalPages\""
 cd "$basedir/IndividualRotated"
 for f in *; do mkdir -p ../A5FinalPages/"$f"; pushd "$f" > /dev/null; for i in *.pdf; do gs -q -o  ../../A5FinalPages/"$f"/"$i" -sDEVICE=pdfwrite -dDEVICEWIDTHPOINTS=421 -dDEVICEHEIGHTPOINTS=595 -dAutoRotatePages=/None -dPDFFitPage -dBATCH -dSAFER "$i"; done; popd > /dev/null; done
 # for f in *; do mkdir ../A5FinalPages/$f; pushd $f; for i in *.pdf; do gs -o  ../../A5FinalPages/$f/$i -sDEVICE=pdfwrite -dDEVICEWIDTHPOINTS=421 -dDEVICEHEIGHTPOINTS=595 -dFIXEDMEDIA -dAutoRotatePages=/None -dPDFFitPage -dBATCH -dSAFER $i; done; popd; done
 echo -e "\nFertig!\n\n"
+echo -e "------------------------------------------------------------"
 echo "Füge die einzelnen Seiten zusammen. Die Ergebnisse kommen in den Ordner \"FinalBooklets\""
 echo
 cd "$basedir/A5FinalPages"
