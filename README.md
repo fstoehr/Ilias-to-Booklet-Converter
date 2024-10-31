@@ -155,7 +155,7 @@ Then run the script with
 ilias-to-booklet
 ```
 
-(if you installed the nix package manager in another way as via ...,
+(if you installed the nix package manager in another way as via the Determinate Systems installer mentioned above,
 flakes might not yet be activated. In that case, instead of the commands
 above, run one of these:
 
