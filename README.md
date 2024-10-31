@@ -73,17 +73,23 @@ The following programs are also required, but should already be installed
 unless you are using a very unusual distribution:
 
 ```
-ghostscript sed bc
+ghostscript sed bc grep file
 ```
 
 As an example, for Debian-based distros, all required packages can be installed with 
 
 ```
-apt install poppler-utils pdftk-java ghostscript imagemagick p7zip sed bc
+apt install poppler-utils pdftk-java ghostscript imagemagick p7zip sed bc grep file
+```
+
+On arch-based distros, the required packages can be installed with
+
+```
+pacman -Syu --needed poppler pdftk ghostscript imagemagick p7zip sed bc grep file
 ```
 
 
-### 2. Install Script
+### 2. Install the Script
 
 Download the file `ilias-to-booklet.sh` above. Alternatively, clone this repo with
 
@@ -169,7 +175,7 @@ If you haven't aleady, install [homebrew](https://brew.sh).
 #### 2. Install Dependencies
 
 ```
-brew install p7zip findutils pdftk-java ghostscript poppler
+brew install p7zip findutils pdftk-java ghostscript poppler grep file
 ```
 
 (
